@@ -33,8 +33,9 @@ const pool = mysql.createPool({
 export async function fetchClasses() {
   const [rows] = await pool.query(`
     SELECT c.class_name, c.school_name, c.class_location, c.day_of_week, 
-           c.start_time, c.end_time, c.instructor, cc.category_name
+           c.start_time, c.end_time, c.instructor, cc.category_name, cl.level_description
     FROM circus_classes c
+    JOIN class_level cl ON c.level_id = cl.id
     JOIN class_category cc ON c.category_id = cc.id;
   `);
   return rows;
