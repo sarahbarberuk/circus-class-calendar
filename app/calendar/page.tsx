@@ -46,12 +46,9 @@ export default function CalendarPage() {
 
       const mappedEvents = data.classes.map((classItem: Class) => ({
         title: `${classItem.class_name} (${classItem.category_name}, ${classItem.level_description})`,
-        start: `${getNextDateForDay(classItem.day_of_week)}T${
-          classItem.start_time
-        }`,
-        end: `${getNextDateForDay(classItem.day_of_week)}T${
-          classItem.end_time
-        }`,
+        daysOfWeek: [getDayOfWeekNumber(classItem.day_of_week)], // Recurring on specific day
+        startTime: classItem.start_time, // Class start time
+        endTime: classItem.end_time, // Class end time
         backgroundColor: categoryColors[classItem.category_name] || "#2196f3",
         borderColor: categoryColors[classItem.category_name] || "#2196f3",
         category: classItem.category_name,
@@ -222,24 +219,18 @@ export default function CalendarPage() {
   );
 }
 
-// Helper function to get the next date for a specific day
-function getNextDateForDay(dayOfWeek: string) {
-  const daysOfWeek = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-  const targetDayIndex = daysOfWeek.indexOf(dayOfWeek);
-  const today = new Date();
-  const currentDayIndex = today.getDay();
-  const daysToAdd = (targetDayIndex - currentDayIndex + 7) % 7;
-  const nextDate = new Date(today);
-  nextDate.setDate(today.getDate() + daysToAdd);
-  return nextDate.toISOString().split("T")[0];
+// Helper function to convert the day of the week to a FullCalendar day number
+function getDayOfWeekNumber(dayOfWeek: string): number {
+  const daysOfWeek = {
+    Sunday: 0,
+    Monday: 1,
+    Tuesday: 2,
+    Wednesday: 3,
+    Thursday: 4,
+    Friday: 5,
+    Saturday: 6,
+  };
+  return daysOfWeek[dayOfWeek];
 }
 
 // Inline styles
