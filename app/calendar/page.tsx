@@ -26,7 +26,7 @@ interface Class {
   day_of_week: string;
   start_time: string;
   end_time: string;
-  instructor: string;
+  instructor: string | null;
   category_name: string;
   level_description: string;
 }
@@ -46,22 +46,30 @@ export default function CalendarPage() {
       const response = await fetch("/api/classes");
       const data = await response.json();
 
-      const mappedEvents = data.classes.map((classItem: Class) => ({
-        title: `${classItem.class_name} (${classItem.category_name}, ${classItem.level_description})`,
-        daysOfWeek: [getDayOfWeekNumber(classItem.day_of_week)], // Recurring on specific day
-        startTime: classItem.start_time, // Class start time
-        endTime: classItem.end_time, // Class end time
-        backgroundColor: categoryColors[classItem.category_name] || "#2196f3",
-        borderColor: categoryColors[classItem.category_name] || "#2196f3",
-        category: classItem.category_name,
-        level: classItem.level_description,
-        school: classItem.school_name, // Add school for filtering
-        extendedProps: {
-          location: classItem.class_location,
-          instructor: classItem.instructor,
+      const mappedEvents = data.classes.map((classItem: Class) => {
+        let title = `${classItem.class_name} - ${classItem.school_name}, (Level: ${classItem.level_description})`;
+
+        if (classItem.instructor) {
+          title += ` - Instructor: ${classItem.instructor}`; // Append instructor if it's not null
+        }
+
+        return {
+          title, // Set the title with class name, school name, level, and optional instructor
+          daysOfWeek: [getDayOfWeekNumber(classItem.day_of_week)], // Recurring on specific day
+          startTime: classItem.start_time, // Class start time
+          endTime: classItem.end_time, // Class end time
+          backgroundColor: categoryColors[classItem.category_name] || "#2196f3",
+          borderColor: categoryColors[classItem.category_name] || "#2196f3",
+          category: classItem.category_name,
+          level: classItem.level_description,
           school: classItem.school_name,
-        },
-      }));
+          extendedProps: {
+            location: classItem.class_location,
+            instructor: classItem.instructor,
+            school: classItem.school_name,
+          },
+        };
+      });
       setEvents(mappedEvents);
     }
 
@@ -123,7 +131,7 @@ export default function CalendarPage() {
 
   return (
     <div>
-      <h1>Circus Classes Calendar</h1>
+      <h1>Circus Classes Calendar - Brighton and nearby</h1>
 
       {/* Filter Container */}
       <div style={filterBoxStyle}>
