@@ -26,7 +26,7 @@ interface Class {
   end_time: string;
   instructor: string;
   category_name: string;
-  level_description: string; // Fetch level description
+  level_description: string;
 }
 
 export default function CalendarPage() {
@@ -34,15 +34,16 @@ export default function CalendarPage() {
   const [calendarHeight, setCalendarHeight] = useState(0);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]); // For filtering categories
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]); // For filtering levels
+  const [selectedSchools, setSelectedSchools] = useState<string[]>([]); // For filtering schools
 
   useEffect(() => {
-    // Calculate the height (90% of the window height)
     const newHeight = window.innerHeight * 0.9;
     setCalendarHeight(newHeight);
 
     async function fetchData() {
-      const response = await fetch("/api/classes"); // Fetch from API
+      const response = await fetch("/api/classes");
       const data = await response.json();
+
       const mappedEvents = data.classes.map((classItem: Class) => ({
         title: `${classItem.class_name} (${classItem.category_name}, ${classItem.level_description})`,
         start: `${getNextDateForDay(classItem.day_of_week)}T${
@@ -53,8 +54,9 @@ export default function CalendarPage() {
         }`,
         backgroundColor: categoryColors[classItem.category_name] || "#2196f3",
         borderColor: categoryColors[classItem.category_name] || "#2196f3",
-        category: classItem.category_name, // Add category for filtering
-        level: classItem.level_description, // Add level for filtering
+        category: classItem.category_name,
+        level: classItem.level_description,
+        school: classItem.school_name, // Add school for filtering
         extendedProps: {
           location: classItem.class_location,
           instructor: classItem.instructor,
@@ -94,57 +96,112 @@ export default function CalendarPage() {
     }
   };
 
-  // Filter events based on selected categories and levels
+  const handleSchoolChange = (school: string) => {
+    if (selectedSchools.includes(school)) {
+      setSelectedSchools(selectedSchools.filter((s) => s !== school));
+    } else {
+      setSelectedSchools([...selectedSchools, school]);
+    }
+  };
+
+  // Filter events based on selected categories, levels, and schools
   const filteredEvents = events.filter(
-    (event: any) =>
+    (event) =>
       (selectedCategories.length === 0 ||
         selectedCategories.includes(event.category)) &&
-      (selectedLevels.length === 0 || selectedLevels.includes(event.level))
+      (selectedLevels.length === 0 || selectedLevels.includes(event.level)) &&
+      (selectedSchools.length === 0 || selectedSchools.includes(event.school))
   );
 
   return (
     <div>
       <h1>Circus Classes Calendar</h1>
 
-      {/* Category Filter */}
-      <div>
-        <h3>Filter by Category</h3>
-        {Object.keys(categoryColors).map((category) => (
-          <label key={category}>
-            <input
-              type="checkbox"
-              value={category}
-              checked={selectedCategories.includes(category)}
-              onChange={() => handleCategoryChange(category)}
-            />
-            {category}
-          </label>
-        ))}
-      </div>
+      {/* Filter Container */}
+      <div style={filterBoxStyle}>
+        <div style={filterGroupWrapperStyle}>
+          {/* Category Filter */}
+          <div style={filterGroupStyle}>
+            <h3 style={headingStyle}>Filter by Category</h3>
+            <div style={filterItemsWrapperStyle}>
+              {Object.keys(categoryColors).map((category) => (
+                <label key={category} style={filterItemStyle}>
+                  <input
+                    type="checkbox"
+                    value={category}
+                    checked={selectedCategories.includes(category)}
+                    onChange={() => handleCategoryChange(category)}
+                    style={checkboxStyle}
+                  />
+                  {category}
+                </label>
+              ))}
+            </div>
+          </div>
 
-      {/* Level Filter */}
-      <div>
-        <h3>Filter by Level</h3>
-        {[
-          "Beginner/Elementary",
-          "Beginner & Improver/Higher Beginner",
-          "Improver",
-          "Improver & Intermediate",
-          "Intermediate",
-          "Intermediate+",
-          "Advanced",
-          "Mixed level/Unspecified",
-        ].map((level) => (
-          <label key={level}>
-            <input
-              type="checkbox"
-              value={level}
-              checked={selectedLevels.includes(level)}
-              onChange={() => handleLevelChange(level)}
-            />
-            {level}
-          </label>
-        ))}
+          {/* Level Filter */}
+          <div style={filterGroupStyle}>
+            <h3 style={headingStyle}>Filter by Level</h3>
+            <div style={filterItemsWrapperStyle}>
+              {[
+                "Beginner/Elementary",
+                "Beginner & Improver/Higher Beginner",
+                "Improver",
+                "Improver & Intermediate",
+                "Intermediate",
+                "Intermediate+",
+                "Advanced",
+                "Mixed level or unspecified",
+              ].map((level) => (
+                <label key={level} style={filterItemStyle}>
+                  <input
+                    type="checkbox"
+                    value={level}
+                    checked={selectedLevels.includes(level)}
+                    onChange={() => handleLevelChange(level)}
+                    style={checkboxStyle}
+                  />
+                  {level}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* School Filter */}
+          <div style={filterGroupStyle}>
+            <h3 style={headingStyle}>Filter by School</h3>
+            <div style={filterItemsWrapperStyle}>
+              {[
+                "Blue Moon",
+                "Brighton Aerial Arts",
+                "Brighton Gymnastics",
+                "Calisthenics Brighton",
+                "Energy for life",
+                "Fun Abounds",
+                "Gemini Pole",
+                "Joe Wilcox",
+                "Lauren acroyoga",
+                "The Pole Lab",
+                "Smikle Dance",
+                "South East Dance",
+                "Studio 4 All Dance",
+                "The Circus Project",
+                "Wickers Gymnastics",
+              ].map((school) => (
+                <label key={school} style={filterItemStyle}>
+                  <input
+                    type="checkbox"
+                    value={school}
+                    checked={selectedSchools.includes(school)}
+                    onChange={() => handleSchoolChange(school)}
+                    style={checkboxStyle}
+                  />
+                  {school}
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* FullCalendar Component */}
@@ -157,7 +214,7 @@ export default function CalendarPage() {
         slotDuration="00:15:00"
         slotLabelInterval="01:00"
         height={calendarHeight}
-        events={filteredEvents} // Pass filtered events
+        events={filteredEvents}
         eventOverlap={false}
         slotEventOverlap={false}
       />
@@ -182,5 +239,43 @@ function getNextDateForDay(dayOfWeek: string) {
   const daysToAdd = (targetDayIndex - currentDayIndex + 7) % 7;
   const nextDate = new Date(today);
   nextDate.setDate(today.getDate() + daysToAdd);
-  return nextDate.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+  return nextDate.toISOString().split("T")[0];
 }
+
+// Inline styles
+const filterBoxStyle = {
+  backgroundColor: "#f0f0f0",
+  padding: "10px 20px",
+  borderRadius: "8px",
+  marginBottom: "20px",
+  border: "1px solid #ccc",
+};
+
+const filterGroupWrapperStyle = {
+  display: "flex", // Align categories and levels side by side
+  justifyContent: "space-between", // Ensure proper spacing between filter groups
+};
+
+const filterGroupStyle = {
+  flex: 1, // Allow equal width for both groups
+  marginRight: "20px", // Add space between the category and level groups
+};
+
+const filterItemsWrapperStyle = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "15px", // Add horizontal space between items
+};
+
+const filterItemStyle = {
+  display: "flex",
+  alignItems: "center",
+};
+
+const checkboxStyle = {
+  marginRight: "5px",
+};
+
+const headingStyle = {
+  marginBottom: "5px",
+};
