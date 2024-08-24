@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import dayGridPlugin from "@fullcalendar/daygrid";
+import tippy from "tippy.js";
+import "tippy.js/dist/tippy.css"; // Import tooltip styles
 
 // Define colors for each category
 const categoryColors: { [key: string]: string } = {
@@ -110,6 +112,15 @@ export default function CalendarPage() {
       (selectedSchools.length === 0 || selectedSchools.includes(event.school))
   );
 
+  // Function to handle event mouseover for tooltip
+  const handleEventMouseEnter = ({ el, event }) => {
+    tippy(el, {
+      content: `${event.title}<br>${event.extendedProps.location}<br>${event.extendedProps.instructor}`,
+      allowHTML: true,
+      placement: "top",
+    });
+  };
+
   return (
     <div>
       <h1>Circus Classes Calendar</h1>
@@ -214,6 +225,7 @@ export default function CalendarPage() {
         events={filteredEvents}
         eventOverlap={false}
         slotEventOverlap={false}
+        eventMouseEnter={handleEventMouseEnter} // Add tooltip on hover
       />
     </div>
   );
