@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import dayGridPlugin from "@fullcalendar/daygrid";
+import { EventApi } from "@fullcalendar/core"; // Import the EventApi type from FullCalendar
 import tippy from "tippy.js";
 import "tippy.js/dist/tippy.css"; // Import tooltip styles
 
@@ -114,13 +115,21 @@ export default function CalendarPage() {
   const filteredEvents = events.filter(
     (event) =>
       (selectedCategories.length === 0 ||
-        selectedCategories.includes(event.category)) &&
-      (selectedLevels.length === 0 || selectedLevels.includes(event.level)) &&
-      (selectedSchools.length === 0 || selectedSchools.includes(event.school))
+        selectedCategories.includes(event.category_name)) &&
+      (selectedLevels.length === 0 ||
+        selectedLevels.includes(event.level_description)) &&
+      (selectedSchools.length === 0 ||
+        selectedSchools.includes(event.school_name))
   );
 
   // Function to handle event mouseover for tooltip
-  const handleEventMouseEnter = ({ el, event }) => {
+  const handleEventMouseEnter = ({
+    el,
+    event,
+  }: {
+    el: HTMLElement; // 'el' is a DOM element
+    event: EventApi; // 'event' is a FullCalendar event
+  }) => {
     tippy(el, {
       content: `${event.title}<br>${event.extendedProps.location}<br>${event.extendedProps.instructor}`,
       allowHTML: true,
@@ -239,7 +248,7 @@ export default function CalendarPage() {
       <footer style={footerStyle}>
         <p>
           This website was made for free by Sarah Barber, mostly for personal
-          use but I've decided to share it. I take no responsibility for the
+          use but I&#39ve decided to share it. I take no responsibility for the
           info being up to date! You can ask me to add extra classes if you
           already know me. Last updated 25/08/2024
         </p>
@@ -254,7 +263,16 @@ export default function CalendarPage() {
 
 // Helper function to convert the day of the week to a FullCalendar day number
 function getDayOfWeekNumber(dayOfWeek: string): number {
-  const daysOfWeek = {
+  const daysOfWeek: {
+    [key in
+      | "Sunday"
+      | "Monday"
+      | "Tuesday"
+      | "Wednesday"
+      | "Thursday"
+      | "Friday"
+      | "Saturday"]: number;
+  } = {
     Sunday: 0,
     Monday: 1,
     Tuesday: 2,
@@ -263,7 +281,8 @@ function getDayOfWeekNumber(dayOfWeek: string): number {
     Friday: 5,
     Saturday: 6,
   };
-  return daysOfWeek[dayOfWeek];
+
+  return daysOfWeek[dayOfWeek as keyof typeof daysOfWeek]; // Type-cast dayOfWeek to valid keys
 }
 
 // Inline styles
@@ -285,10 +304,10 @@ const filterGroupStyle = {
   marginRight: "20px", // Add space between the category and level groups
 };
 
-const filterItemsWrapperStyle = {
+const filterItemsWrapperStyle: React.CSSProperties = {
   display: "flex",
-  flexWrap: "wrap",
-  gap: "15px", // Add horizontal space between items
+  flexWrap: "wrap", // Correct value for flexWrap
+  gap: "15px", // Correct gap for space between items
 };
 
 const filterItemStyle = {
@@ -304,7 +323,7 @@ const headingStyle = {
   marginBottom: "5px",
 };
 
-const footerStyle = {
+const footerStyle: React.CSSProperties = {
   backgroundColor: "#333",
   color: "#fff",
   textAlign: "center",
