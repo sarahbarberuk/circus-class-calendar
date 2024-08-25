@@ -1,12 +1,10 @@
 // lib/db.ts
 import mysql from "mysql2/promise";
 
-const dbPassword = process.env.DB_PASSWORD;
+const dbHost = process.env.DB_HOST;
 
-if (!dbPassword) {
-  throw new Error(
-    "Database password is not defined in the environment variables."
-  );
+if (!dbHost) {
+  throw new Error("Database host is not defined in the environment variables.");
 }
 
 const dbName = process.env.DB_NAME;
@@ -23,8 +21,16 @@ if (!dbUsername) {
   );
 }
 
+const dbPassword = process.env.DB_PASSWORD;
+
+if (!dbPassword) {
+  throw new Error(
+    "Database password is not defined in the environment variables."
+  );
+}
+
 const pool = mysql.createPool({
-  host: "localhost", // Replace with your database host
+  host: dbHost, // Replace with your database host
   user: dbUsername, // Replace with your database user
   password: dbPassword, // Replace with your database password
   database: dbName, // Replace with your database name
